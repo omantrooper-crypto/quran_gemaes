@@ -1,0 +1,79 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> qurangames@0.2.0 check
+> npm run content:check && npm test && npm run build
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> qurangames@0.2.0 content:check
+> node scripts/check-content.mjs
+
+{
+  "editorialQuestions": 211,
+  "candidates": {
+    "key": 114,
+    "memory": 114,
+    "order": 621,
+    "missing": 5779,
+    "meaning": 70,
+    "grid": 11960,
+    "speaker": 73,
+    "story": 15,
+    "next": 6122,
+    "compass": 114,
+    "tajwid": 3236,
+    "rules": 3236,
+    "similar": 5960,
+    "theme": 53,
+    "search": 5960,
+    "links": 114
+  }
+}
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> qurangames@0.2.0 test
+> node --test tests/*.test.mjs
+
+✔ API enforces school ownership, independent judge access, signed name and immutable final score (7.018281ms)
+✔ daily answer keys never reach clients; replay cannot award points twice; verified email required (269.257857ms)
+✔ training reserves unseen questions across reloads, simultaneous starts, scopes, modes and retries (48.078546ms)
+✔ only verified content editors publish, version conflicts prevent overwrite, drafts stay private (7.401972ms)
+✔ Quran snapshot has 114 contiguous chapters and 6236 unchanged, nonempty verses (4.152058ms)
+✔ 1000 draws stay within assigned level and never overlap or cross a chapter (26.49756ms)
+✔ invalid and insufficient memorization ranges fail explicitly (0.666327ms)
+✔ score calculation rejects missing, non-finite, negative and out-of-range inputs (0.309058ms)
+✔ rankings use finalized judges only, respect ties and separate levels (8.345348ms)
+✔ CSV round trip handles commas, quotes, multiline Arabic and neutralizes formulas (1.159714ms)
+✔ all 18 non-audio challenges generate usable questions and source text (758.433015ms)
+✔ mastery replays actual missed questions (22.481693ms)
+✔ search normalizes marks without mutating canonical text (0.285722ms)
+✔ expanded bank has independent candidates, valid references, unique identities and distinct options (780.421682ms)
+✔ every game exhausts without repeating, including shuffled cards and words (423.412924ms)
+✔ history survives storage reload, abandoned sessions, difficulty and cross-game gates (67.044634ms)
+✔ content validation rejects duplicate concepts and invalid Quran references, drafts do not play (0.404943ms)
+✔ user can navigate all screens, filter challenges and complete a training session (1374.933314ms)
+✔ school flow draws, approves, projects, finalizes judge sheet and exports rankings state (890.289003ms)
+✔ closing and reopening a game reserves fresh questions, including after a reload (692.737641ms)
+✔ content editor saves a reviewed question and history persists in a new app instance (1441.519784ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5008.981248
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> qurangames@0.2.0 build
+> vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1601 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.71 kB │ gzip:   0.47 kB
+dist/assets/index-BzuO_k_Q.css   48.24 kB │ gzip:  11.01 kB
+dist/assets/index-B_1YkX9t.js   530.32 kB │ gzip: 149.37 kB
+✓ built in 2.02s

@@ -1,0 +1,22 @@
+export const games=[
+{id:'key',title:'مفتاح السورة',desc:'تتبّع الإشارات، واكتشف السورة.',category:'معرفة',icon:'KeyRound',color:'blue',level:'مبتدئ',minutes:3},
+{id:'memory',title:'ذاكرة السور',desc:'بطاقات تنتظر أن تجمع شملها.',category:'ذاكرة',icon:'Copy',color:'sage',level:'مبتدئ',minutes:3},
+{id:'order',title:'سُلّم السور',desc:'رتّب الخطوات على طريق المصحف.',category:'حفظ',icon:'ListOrdered',color:'olive',level:'مبتدئ',minutes:2},
+{id:'missing',title:'الكلمة الغائبة',desc:'اقرأ، أخفِ النص، واسترجع الكلمة.',category:'حفظ',icon:'Puzzle',color:'blue',level:'متوسط',minutes:4},
+{id:'meaning',title:'جسور المعاني',desc:'صِل المفردات بمعانيها.',category:'معرفة',icon:'Link',color:'olive',level:'متوسط',minutes:3},
+{id:'grid',title:'شبكة المفردات',desc:'اعثر على كلمات قرآنية في الشبكة.',category:'ذاكرة',icon:'Grid3X3',color:'sage',level:'مبتدئ',minutes:3},
+{id:'speaker',title:'مَن المتحدث؟',desc:'اكتشف صاحب القول من سياق الآيات.',category:'معرفة',icon:'MessageCircle',color:'blue',level:'متوسط',minutes:4},
+{id:'story',title:'خيوط القصة',desc:'اجمع أحداث القصة في ترتيبها.',category:'معرفة',icon:'Route',color:'olive',level:'متوسط',minutes:4},
+{id:'next',title:'رفيق الحفظ',desc:'ما الآية التالية؟ اختبر رسوخ حفظك.',category:'حفظ',icon:'BookOpen',color:'sage',level:'متوسط',minutes:4},
+{id:'compass',title:'بوصلة المصحف',desc:'تعرّف مواضع السور وترتيبها.',category:'معرفة',icon:'Compass',color:'blue',level:'مبتدئ',minutes:3},
+{id:'tajwid',title:'عدسة التجويد',desc:'حدّد موضع الحكم في النص.',category:'تجويد',icon:'ScanSearch',color:'olive',level:'متقدم',minutes:4},
+{id:'rules',title:'ميزان التجويد',desc:'اربط الشاهد بحكمه التجويدي.',category:'تجويد',icon:'Scale',color:'sage',level:'متقدم',minutes:4},
+{id:'listen',title:'استمع واكتشف',desc:'استمع إلى تسجيل معلّمك وحدّد السورة.',category:'استماع',icon:'Headphones',color:'blue',level:'متوسط',minutes:3,audio:true},
+{id:'audioMemory',title:'ذاكرة السماع',desc:'تسجيل قصير، ثم سؤال من معلّمك.',category:'استماع',icon:'AudioLines',color:'sage',level:'متقدم',minutes:4,audio:true},
+{id:'similar',title:'مفترق المتشابهات',desc:'ميّز بين المواضع المتشابهة.',category:'حفظ',icon:'Split',color:'olive',level:'متقدم',minutes:4},
+{id:'theme',title:'بوابة الموضوع',desc:'تعرّف الموضوع الذي تشير إليه الآيات.',category:'معرفة',icon:'PanelsTopLeft',color:'blue',level:'متوسط',minutes:3},
+{id:'search',title:'الباحث القرآني',desc:'ابحث في المصحف عن العبارة المطلوبة.',category:'معرفة',icon:'Search',color:'sage',level:'متوسط',minutes:5},
+{id:'links',title:'شبكة الروابط',desc:'صِل اسم السورة بموضعها في المصحف.',category:'معرفة',icon:'Waypoints',color:'olive',level:'مبتدئ',minutes:3},
+{id:'gates',title:'لغز الأبواب',desc:'ثلاث محطات؛ معرفة وحفظ وتجويد.',category:'تحدٍ شامل',icon:'DoorOpen',color:'blue',level:'متقدم',minutes:5},
+{id:'mastery',title:'رحلة الإتقان',desc:'أسئلة جديدة للحفظ، ومراجعة أخطائك باختيارك.',category:'تحدٍ شامل',icon:'Sparkles',color:'olive',level:'متوسط',minutes:5}
+];

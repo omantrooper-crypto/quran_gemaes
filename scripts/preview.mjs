@@ -1,0 +1,16 @@
+import {build} from 'esbuild';
+import fs from 'node:fs';
+import path from 'node:path';
+const root=path.resolve(new URL('..',import.meta.url).pathname);
+const output=process.argv[2]||path.join(root,'../QuranGames-preview.html');
+const result=await build({entryPoints:[path.join(root,'src/main.jsx')],bundle:true,write:false,format:'iife',minify:true,loader:{'.css':'empty'},define:{'import.meta.env':JSON.stringify({BASE_URL:'/'}),'process.env.NODE_ENV':'"production"'},legalComments:'inline'});
+let js=result.outputFiles[0].text;
+let css=fs.readFileSync(path.join(root,'src/styles.css'),'utf8');
+for(const file of ['arabic-0.woff','arabic-1.woff','amiri-quran.woff2'])css=css.replaceAll(`/fonts/${file}`,`data:font/${file.endsWith('woff2')?'woff2':'woff'};base64,${fs.readFileSync(path.join(root,'public/fonts',file)).toString('base64')}`);
+const logo=`data:image/svg+xml;base64,${fs.readFileSync(path.join(root,'public/favicon.svg')).toString('base64')}`;
+js=js.replaceAll('/favicon.svg',logo);
+for(const [url,mime] of [['/data/provenance.json','application/json'],['/data/DATA-LICENSE.txt','text/plain']])js=js.replaceAll(url,`data:${mime};base64,${fs.readFileSync(path.join(root,'public'+url)).toString('base64')}`);
+const corpus=fs.readFileSync(path.join(root,'public/data/quran.json'),'utf8').replaceAll('<','\\u003c');
+const attribution=fs.readFileSync(path.join(root,'public/data/DATA-LICENSE.txt'),'utf8');
+const html=`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#174C46"><title>التحدي القرآني | نسخة تفاعلية</title><link rel="icon" href="${logo}"><style>${css}</style></head><body><div id="root"></div><script>window.__QURAN_DATA__=${corpus};</script><script>${js.replaceAll('</script','<\\/script')}</script><!-- Quran Arabic text: QuranEnc via quran-json 3.1.2. Dataset CC-BY-SA 4.0. No translations bundled. --> <script type="text/plain" id="dataset-license">${attribution.replaceAll('</script','<\\/script')}</script></body></html>`;
+fs.writeFileSync(output,html);console.log(`Created ${output} (${html.length} characters).`);

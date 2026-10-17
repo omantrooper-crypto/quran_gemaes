@@ -1,0 +1,11 @@
+{
+  "source": "QuranEnc / Arabic text from quran-json 3.1.2",
+  "sourceUrl": "https://quranenc.com",
+  "distribution": "https://www.npmjs.com/package/quran-json/v/3.1.2",
+  "license": "CC-BY-SA-4.0 (dataset); Arabic text only; no translations redistributed",
+  "date": "2026-10-16",
+  "sha256": "0450ab8fa5af63ebd2deb4dd5b444798d985c25d05a406fd04f9dd5f2e8d7f3f",
+  "chapters": 114,
+  "verses": 6236,
+  "review": "Structural validation only; educational question bank awaits specialist review"
+}
