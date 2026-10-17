@@ -28,7 +28,7 @@
 - تحدٍ يومي مصنّف: محاولة واحدة لكل حساب مُفعّل في اليوم بتوقيت UTC. الإجابات الصحيحة وحساب النقاط على الخادم، مع منع احتساب إعادة الإرسال مرتين.
 - لوحة منافسة للحسابات التي وافقت على إظهار اسمها ونقاطها.
 
-**رُفعت النسخة إلى [GitHub](https://github.com/omantrooper-crypto/quran_gemaes) ونجح نشرها تلقائيًا على Vercel في ١٧ أكتوبر ٢٠٢٦.** نجحت فحوص المحتوى والاختبارات والبناء في [GitHub Actions](https://github.com/omantrooper-crypto/quran_gemaes/actions/runs/39013224492) للإصدار `64a22a7`. لم يكتمل إعداد Firebase أو اختبار العضويات والمزامنة على مشروع حي بعد. لا يحتوي المستودع مفاتيح مشروع أو حساب خدمة؛ النسخة التفاعلية المفردة تعمل في الوضع المحلي فقط.
+**رُفعت النسخة إلى [GitHub](https://github.com/omantrooper-crypto/quran_gemaes) ونجح نشرها تلقائيًا على Vercel في ١٧ أكتوبر ٢٠٢٦.** نجحت فحوص المحتوى والاختبارات والبناء في [GitHub Actions](https://github.com/omantrooper-crypto/quran_gemaes/actions/runs/39013224492) للإصدار `64a22a7`. جُهّز Firebase في المشروع `qurangames-80d96`: تطبيق ويب، وتسجيل بالبريد، وقاعدة Firestore Standard في الدوحة، مع نشر القواعد والفهارس دون تفعيل الفوترة. بقي توصيل متغيرات التطبيق وهوية الخادم في Vercel واختبار العضويات والمزامنة من الموقع المنشور. لا يحتوي المستودع مفتاح حساب خدمة؛ النسخة التفاعلية المفردة تعمل في الوضع المحلي فقط. راجع `FIREBASE_SETUP.md` للحالة وخطوات الإكمال.
 
 ## تجربة سريعة
 
@@ -57,10 +57,10 @@ npm run preview:file
 
 ## إعداد Firebase دون تفعيل الفوترة
 
-1. استخدم مشروع Firebase على خطة Spark، دون ربط حساب فوترة.
-2. سجّل تطبيق ويب، وانسخ حقول إعداد التطبيق إلى متغيرات `VITE_FIREBASE_*` في `.env.example`، أو في إعدادات Vercel.
-3. فعّل Authentication / Email & Password. أضف نطاق Vercel إلى Authorized domains، واضبط رسائل التفعيل والاستعادة.
-4. أنشئ قاعدة Cloud Firestore. انشر `firestore.rules` و`firestore.indexes.json` كما هما؛ تمنع الوصول المباشر من المتصفح، لأن البيانات تمر بالخادم الذي يتحقق من الهوية والصلاحيات.
+1. المشروع القائم `qurangames-80d96` محدد في `.firebaserc`، والفوترة غير مفعلة.
+2. تطبيق الويب مسجل؛ استرجع إعداداته كما في `FIREBASE_SETUP.md` وأضف حقول `VITE_FIREBASE_*` إلى إعدادات Vercel.
+3. Authentication / Email & Password مفعّل. أضف عنوان الإنتاج الفعلي إلى Authorized domains بعد التحقق منه، واضبط رسائل التفعيل والاستعادة.
+4. قاعدة Firestore الافتراضية قائمة في `me-central1`، والقواعد والفهارس منشورة. لتحديثها بعد المراجعة: `npx -y firebase-tools@latest deploy --only firestore --project qurangames-80d96`. تمنع القواعد الوصول المباشر من المتصفح، لأن البيانات تمر بالخادم الذي يتحقق من الهوية والصلاحيات.
 5. جهّز هوية خدمة محدودة الصلاحيات للخادم، مع صلاحيات Firestore اللازمة وقراءة حالة مستخدمي Firebase Auth. خزّن `FIREBASE_PROJECT_ID` و`FIREBASE_CLIENT_EMAIL` و`FIREBASE_PRIVATE_KEY` في متغيرات Vercel السرية فقط.
 6. لا تضف المفتاح الخاص إلى GitHub، ولا تستخدم بادئة `VITE_` لأي سر، ولا ترسله في المحادثة.
 
