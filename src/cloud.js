@@ -3,6 +3,8 @@ import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmai
 const env=import.meta.env;
 export const configured=!!(env.VITE_FIREBASE_API_KEY&&env.VITE_FIREBASE_AUTH_DOMAIN&&env.VITE_FIREBASE_PROJECT_ID&&env.VITE_FIREBASE_APP_ID);
 export const auth=configured?getAuth(initializeApp({apiKey:env.VITE_FIREBASE_API_KEY,authDomain:env.VITE_FIREBASE_AUTH_DOMAIN,projectId:env.VITE_FIREBASE_PROJECT_ID,appId:env.VITE_FIREBASE_APP_ID})):null;
+// Localize verification, password-reset emails and Firebase's hosted action pages.
+if(auth)auth.languageCode='ar';
 export const watchAuth=cb=>auth?onAuthStateChanged(auth,cb):(cb(null),()=>{});
 export async function login(email,password){if(!auth)throw Error('تسجيل العضويات سيتاح بعد ربط المشروع.');return signInWithEmailAndPassword(auth,email,password);}
 export async function register(name,email,password){if(!auth)throw Error('تسجيل العضويات سيتاح بعد ربط المشروع.');const r=await createUserWithEmailAndPassword(auth,email,password);await updateProfile(r.user,{displayName:name});await sendEmailVerification(r.user);await r.user.getIdToken(true);return r;}

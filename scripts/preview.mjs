@@ -1,11 +1,12 @@
 import {build} from 'esbuild';
 import fs from 'node:fs';
 import path from 'node:path';
-const root=path.resolve(new URL('..',import.meta.url).pathname);
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('..',import.meta.url));
 const output=process.argv[2]||path.join(root,'../QuranGames-preview.html');
 const result=await build({entryPoints:[path.join(root,'src/main.jsx')],bundle:true,write:false,format:'iife',minify:true,loader:{'.css':'empty'},define:{'import.meta.env':JSON.stringify({BASE_URL:'/'}),'process.env.NODE_ENV':'"production"'},legalComments:'inline'});
 let js=result.outputFiles[0].text;
-let css=fs.readFileSync(path.join(root,'src/styles.css'),'utf8');
+let css=['styles.css','rihla.css'].map(file=>fs.readFileSync(path.join(root,'src',file),'utf8')).join('\n');
 for(const file of ['arabic-0.woff','arabic-1.woff','amiri-quran.woff2'])css=css.replaceAll(`/fonts/${file}`,`data:font/${file.endsWith('woff2')?'woff2':'woff'};base64,${fs.readFileSync(path.join(root,'public/fonts',file)).toString('base64')}`);
 const logo=`data:image/svg+xml;base64,${fs.readFileSync(path.join(root,'public/favicon.svg')).toString('base64')}`;
 js=js.replaceAll('/favicon.svg',logo);

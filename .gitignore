@@ -5,3 +5,6 @@ dist/
 .env.*.local
 .vercel/
 *.log
+.cache/
+artifacts/
+tests/.api-test-bundle.mjs
