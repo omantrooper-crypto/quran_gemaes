@@ -4,7 +4,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/((?!api/|assets/|data/|fonts/|favicon.svg).*)",
+      "source": "/((?!api/|assets/|data/|fonts/|favicon.svg|recitation-policy.html).*)",
       "destination": "/index.html"
     }
   ],
@@ -33,7 +33,7 @@
   ],
   "functions": {
     "api/app.js": {
-      "includeFiles": "public/data/**"
+      "includeFiles": "{public/data/**,src/data/**}"
     }
   }
 }

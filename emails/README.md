@@ -36,3 +36,7 @@
 - [حدود Resend المجانية](https://resend.com/blog/new-free-tier)
 - [حدود Brevo المجانية](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan)
 - [توثيق نطاق Brevo](https://help.brevo.com/hc/en-us/articles/12163873383186-Authenticate-your-domain-with-Brevo-Brevo-code-DKIM-DMARC)
+
+## نتيجة المراجعة اللاحقة
+
+أُعيدت محاولة تعديل عنوان رسالة التحقق، فرفضت Firebase الحفظ برسالة `Email template updates are currently unavailable for this project`. متن التحقق مقفول. اسم المرسل العربي موجود، لكن اسم المشروع داخل العنوان والتوقيع لم يُصحح، ولا يوجد ضمان للتسليم إلى الوارد. راجع `SECURITY_REVIEW.md` للتفصيل.

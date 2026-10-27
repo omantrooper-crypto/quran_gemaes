@@ -1,3 +1,4 @@
+import {recitationCandidates} from './recitation.mjs';
 export const uid = () => globalThis.crypto.randomUUID();
 export const ar = n => new Intl.NumberFormat('ar').format(n);
 export const clean = s => String(s).normalize('NFKD').replace(/[\u064B-\u065F\u0670\u06D6-\u06EDـ]/g,'').replace(/[أإآٱ]/g,'ا').trim();
@@ -12,23 +13,18 @@ export function bounds(q,level) {
   return q.filter(s=>s.id>=level.startSurah&&s.id<=level.endSurah).map(s=>({s:s.id,from:s.id===+level.startSurah?+level.startAyah:1,to:s.id===+level.endSurah?+level.endAyah:s.verses.length}));
 }
 export function generatePassages(q,level,rng=Math.random) {
-  const candidates=[];
-  // Partition each chapter into non-overlapping windows, with a random offset
-  // inside its slack. This guarantees sufficient capacity is never lost by a
-  // greedy draw that happens to select a blocking interval.
-  for(const r of bounds(q,level)) {
-    const length=Number(level.length),available=r.to-r.from+1;
-    const capacity=Math.floor(available/length);
-    const offset=capacity?Math.floor(rng()*(available-capacity*length+1)):0;
-    for(let i=0;i<capacity;i++){const from=r.from+offset+i*length;candidates.push({s:r.s,from,to:from+length-1});}
-  }
-  const chosen=shuffle(candidates,rng).slice(0,Number(level.count));
-  if(chosen.length<+level.count) throw Error('النطاق لا يكفي لهذا العدد من المقاطع دون تداخل. وسّع النطاق أو قلّل طول المقطع أو عدد الأسئلة.');
+  const candidates=recitationCandidates(q,bounds(q,level));
+  // Favor the requested length but keep complete meaning units and whole surahs.
+  const ranked=shuffle(candidates,rng).sort((a,b)=>Math.abs((a.to-a.from+1)-Number(level.length))-Math.abs((b.to-b.from+1)-Number(level.length)));
+  const pool=ranked.slice(0,Math.max(Number(level.count)*3,Number(level.count)));
+  const chosen=shuffle(pool,rng).slice(0,Number(level.count));
+  if(chosen.length<+level.count)throw Error('لا تتوفر مواضع مرجعية كافية داخل هذا النطاق. وسّع النطاق أو قلّل عدد الأسئلة، أو أدخل مواضع راجعها المعلّم يدويًا. السور القصيرة لا تُجزّأ.');
   return chosen.sort((a,b)=>a.s-b.s||a.from-b.from);
 }
+
 export const defaultRubric = [{key:'memory',label:'الحفظ والضبط',max:70},{key:'tajwid',label:'التجويد وحسن الأداء',max:20},{key:'waqf',label:'الوقف والابتداء',max:10}];
 export function scoreTotal(values,rubric=defaultRubric) {
-  if(!Array.isArray(rubric)||rubric.length!==3||rubric.reduce((a,r)=>a+Number(r.max),0)!==100) throw Error('يجب أن يكون مجموع الأوزان ١٠٠.');
+  if(!Array.isArray(rubric)||rubric.length!==3||new Set(rubric.map(r=>r.key)).size!==3||rubric.some(r=>!['memory','tajwid','waqf'].includes(r.key)||!Number.isFinite(Number(r.max))||Number(r.max)<0)||rubric.reduce((a,r)=>a+Number(r.max),0)!==100) throw Error('يجب أن يكون مجموع الأوزان ١٠٠.');
   return rubric.reduce((total,r)=>{const n=Number(values[r.key]);if(values[r.key]===''||values[r.key]==null||!Number.isFinite(n)||n<0||n>r.max)throw Error(`درجة ${r.label} يجب أن تكون بين ٠ و${r.max}.`);return total+n;},0);
 }
 export function resultsFor(c) {
@@ -57,7 +53,7 @@ export function validateCompetition(c,q) {
  const unique=arr=>new Set(arr.map(x=>x.id)).size===arr.length;
  if(!unique(c.levels)||!unique(c.participants)||!unique(c.judges))throw Error('تكرار في معرّفات السجلات.');
  for(const l of c.levels)bounds(q,l);
- if(c.participants.some(p=>!p.name?.trim()||p.name.length>100||!c.levels.some(l=>l.id===p.levelId)))throw Error('راجع أسماء المتسابقين ومستوياتهم.');
+ if(c.participants.some(p=>typeof p.name!=='string'||!p.name.trim()||p.name.length>100||!c.levels.some(l=>l.id===p.levelId)||(p.approved!==undefined&&typeof p.approved!=='boolean')))throw Error('راجع أسماء المتسابقين ومستوياتهم.');
  scoreTotal(Object.fromEntries(c.rubric.map(r=>[r.key,0])),c.rubric);
  return true;
 }

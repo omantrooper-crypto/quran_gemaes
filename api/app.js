@@ -5,6 +5,8 @@ import {readFileSync} from 'node:fs';
 import {randomInt} from 'node:crypto';
 import {selectSession,defaultBank,questionTokens} from '../src/questions.mjs';
 import {validateBank} from '../src/content.mjs';
+import {validAvatar} from '../src/account.mjs';
+import {validateRecitation} from '../src/recitation.mjs';
 import {generatePassages,scoreTotal,validateCompetition,resultsFor} from '../src/domain.mjs';
 const q=JSON.parse(readFileSync(new URL('../public/data/quran.json',import.meta.url),'utf8'));
 const random=()=>randomInt(0,1000000)/1000000;
@@ -14,14 +16,20 @@ const idValid=id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(id);
 function member(c,uid){return c.ownerId===uid||c.judges.some(j=>j.id===uid);}
 function visible(c,uid){return c.ownerId===uid?c:{...c,scores:c.scores.filter(s=>s.judgeId===uid),audit:[],judges:c.judges.map(j=>({id:j.id,name:j.name}))};}
 function assertOwner(c,uid){if(c.ownerId!==uid)fail('هذه العملية لمنظّم المسابقة فقط.',403);}
-function checkPassages(c){for(const p of c.participants){const l=c.levels.find(l=>l.id===p.levelId);if(!p.passages)continue;if(p.passages.length!==Number(l.count))fail('عدد المقاطع لا يطابق المستوى.');for(const x of p.passages){if(!Number.isInteger(x.s)||!Number.isInteger(x.from)||!Number.isInteger(x.to)||x.to-x.from+1!==Number(l.length)||x.s<Number(l.startSurah)||x.s>Number(l.endSurah)||x.from<1||x.to>q[x.s-1].verses.length||(x.s===Number(l.startSurah)&&x.from<Number(l.startAyah))||(x.s===Number(l.endSurah)&&x.to>Number(l.endAyah)))fail('مقطع خارج مستوى الحفظ.');}for(let i=0;i<p.passages.length;i++)for(let j=i+1;j<p.passages.length;j++){const a=p.passages[i],b=p.passages[j];if(a.s===b.s&&a.from<=b.to&&a.to>=b.from)fail('المقاطع متداخلة.');}}}
+function checkPassages(c,previous){for(const p of c.participants){
+ const old=previous?.participants.find(x=>x.id===p.id);if(old&&previous.scores.some(x=>x.participantId===p.id)&&JSON.stringify(old)===JSON.stringify(p))continue;
+ const l=c.levels.find(l=>l.id===p.levelId);if(!p.passages){if(p.approved)fail('لا يمكن اعتماد متسابق بلا أسئلة.');continue;}
+ if(!Array.isArray(p.passages)||p.passages.length!==Number(l.count))fail('عدد المواضع لا يطابق المستوى.');
+ for(const x of p.passages){try{validateRecitation(q,l,x);}catch(e){fail(e.message);}}
+ for(let i=0;i<p.passages.length;i++)for(let j=i+1;j<p.passages.length;j++){const a=p.passages[i],b=p.passages[j];if(a.s===b.s&&a.from<=b.to&&a.to>=b.from)fail('المواضع متداخلة.');}
+}}
 export default async function handler(req,res){
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
  try{
   if(!process.env.FIREBASE_PROJECT_ID||!process.env.FIREBASE_CLIENT_EMAIL||!process.env.FIREBASE_PRIVATE_KEY)fail('الربط بالخادم لم يكتمل بعد.',503);
   if(!getApps().length)initializeApp({credential:cert({projectId:process.env.FIREBASE_PROJECT_ID,clientEmail:process.env.FIREBASE_CLIENT_EMAIL,privateKey:process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g,'\n')})});
-  const body=typeof req.body==='string'?JSON.parse(req.body):req.body;
+  let body;try{body=typeof req.body==='string'?JSON.parse(req.body):req.body;}catch{fail('صيغة الطلب غير صالحة.');}
   if(!body||Buffer.byteLength(JSON.stringify(body))>500000)fail('حجم الطلب كبير.');
   const {action}=body;if(!allowed.has(action))fail('عملية غير معروفة.');
   const db=getFirestore(),contentRef=db.doc('content/editorial');
@@ -29,8 +37,10 @@ export default async function handler(req,res){
   const token=req.headers.authorization?.match(/^Bearer (.+)$/)?.[1];if(!token)fail('سجّل الدخول أولًا.',401);
   let user;try{user=await getAuth().verifyIdToken(token,true);}catch{fail('انتهت الجلسة. أعد تسجيل الدخول.',401);}
   const uid=user.uid,profileRef=db.doc(`profiles/${uid}`);
-  const editor=user.email_verified===true&&String(process.env.CONTENT_EDITOR_UIDS||'').split(',').map(x=>x.trim()).filter(Boolean).includes(uid);
-  if(action==='capabilities')return res.json({contentEditor:editor});
+  const admin=user.email_verified===true&&String(process.env.ADMIN_UIDS||'').split(',').map(x=>x.trim()).filter(Boolean).includes(uid);
+  const editor=admin||(user.email_verified===true&&String(process.env.CONTENT_EDITOR_UIDS||'').split(',').map(x=>x.trim()).filter(Boolean).includes(uid));
+  if(action==='capabilities')return res.json({admin,contentEditor:editor,emailVerified:user.email_verified===true});
+  if(user.email_verified!==true)fail('أكّد بريدك الإلكتروني أولًا لاستخدام خدمات العضوية.',403);
   if(action==='content.get'||action==='content.save'){
    if(!editor)fail('تعديل المحتوى متاح لمحرري المنصة المعتمدين فقط.',403);
    if(action==='content.get'){const snap=await contentRef.get();return res.json(snap.exists?snap.data():{bank:defaultBank,version:0});}
@@ -52,8 +62,8 @@ export default async function handler(req,res){
     tx.set(sessionRef,{uid,result,createdAt:Date.now(),expiresAt:new Date(Date.now()+86400000)});return result;
    });return res.json(result);
   }
-  if(action==='profile.get'){const d=await profileRef.get();return res.json(d.exists?d.data():{alias:user.name||'متسابق',rankOptIn:false,points:0});}
-  if(action==='profile.save'){const alias=String(body.alias||'').trim();if(alias.length<2||alias.length>30)fail('الاسم الظاهر بين حرفين و٣٠ حرفًا.');await profileRef.set({alias,rankOptIn:body.rankOptIn===true},{merge:true});return res.json({ok:true});}
+  if(action==='profile.get'){const d=(await profileRef.get()).data()||{};return res.json({alias:d.alias||user.name||'متسابق',rankOptIn:d.rankOptIn===true,points:d.points||0,avatar:validAvatar(d.avatar)?d.avatar:''});}
+  if(action==='profile.save'){const alias=String(body.alias||'').trim();if(alias.length<2||alias.length>30)fail('الاسم الظاهر بين حرفين و٣٠ حرفًا.');if(body.avatar!==undefined&&!validAvatar(body.avatar))fail('الصورة غير صالحة أو أكبر من الحجم المسموح.');await profileRef.set({alias,rankOptIn:body.rankOptIn===true,...(body.avatar!==undefined?{avatar:body.avatar}:{})},{merge:true});return res.json({ok:true});}
   if(action==='ranking'){const snap=await db.collection('profiles').where('rankOptIn','==',true).orderBy('points','desc').limit(30).get();return res.json({rows:snap.docs.filter(d=>d.data().rankOptIn===true).slice(0,30).map(d=>({alias:d.data().alias||'متسابق',points:d.data().points||0}))});}
   if(action.startsWith('daily.')){
    if(!user.email_verified)fail('فعّل بريدك الإلكتروني للمشاركة في التحدي المصنّف.',403);
@@ -73,13 +83,14 @@ export default async function handler(req,res){
    if(c&&!member(c,uid))fail('ليست لديك صلاحية الوصول.',403);
    if(c&&Number(body.version)!==c.version)fail('تم تحديث المسابقة من جهاز آخر. أعد تحميلها قبل الحفظ.',409);
    if(action==='competition.save'){
-    if(c)assertOwner(c,uid);const incoming=body.competition;validateCompetition(incoming,q);checkPassages(incoming);
+    if(c)assertOwner(c,uid);const incoming=body.competition;try{validateCompetition(incoming,q);}catch(e){fail(e.message);}checkPassages(incoming,c);
     if(c?.scores.length){
      if(JSON.stringify([incoming.levels,incoming.judges,incoming.rubric])!==JSON.stringify([c.levels,c.judges,c.rubric]))fail('بدأ التقييم. لا يمكن تعديل المستويات أو لجنة التحكيم أو أوزانه.');
      for(const p of c.participants.filter(p=>c.scores.some(s=>s.participantId===p.id))){if(JSON.stringify(incoming.participants.find(x=>x.id===p.id))!==JSON.stringify(p))fail('لا يمكن تعديل بيانات متسابق بدأ تقييمه.');}
     }
     if(!incoming.judges.every(j=>idValid(j.id)&&typeof j.name==='string'&&j.name.length>0&&j.name.length<=100))fail('راجع بيانات المحكّمين.');
-    c={...incoming,id,ownerId:uid,judgeIds:incoming.judges.map(j=>j.id),scores:c?.scores||[],audit:c?.audit||[],published:c?.published||false,version:c?.version||0};
+    const participants=incoming.participants.map(p=>({...p,...(p.approved?{reviewedBy:uid,reviewedAt:c?.participants.find(x=>x.id===p.id&&x.approved)?.reviewedAt||new Date().toISOString()}:{})}));
+    c={name:incoming.name,school:incoming.school,date:incoming.date||'',status:incoming.status||'draft',levels:incoming.levels,participants,judges:incoming.judges,rubric:incoming.rubric,id,ownerId:uid,judgeIds:incoming.judges.map(j=>j.id),scores:c?.scores||[],audit:c?.audit||[],published:c?.published||false,version:c?.version||0};
    }else{
     if(!c)fail('المسابقة غير موجودة.',404);
     if(action==='competition.generate'){
@@ -92,5 +103,5 @@ export default async function handler(req,res){
    }
    c.version++;c.updatedAt=new Date().toISOString();if(c.audit.length>400)c.audit=c.audit.slice(-400);if(Buffer.byteLength(JSON.stringify(c))>850000)fail('تجاوزت المسابقة الحد الأقصى للحفظ.');tx.set(ref,c);return visible(c,uid);
   });return res.json({competition:result});
- }catch(e){if(e.status)return res.status(e.status).json({error:e.message});console.error('api/app error:',e.code||e.name);return res.status(500).json({error:'تعذر حفظ البيانات. تحقق من إعدادات المشروع ثم أعد المحاولة.'});}
+ }catch(e){if(e.status)return res.status(e.status).json({error:e.message});console.error('api/app error:',e.code||e.name);return res.status(500).json({error:'تعذر إتمام العملية. حاول مجددًا بعد قليل.'});}
 }

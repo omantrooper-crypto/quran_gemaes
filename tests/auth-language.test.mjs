@@ -7,7 +7,7 @@ import vm from 'node:vm';
 test('registration verification and password reset request Arabic without sending real email',async()=>{
  const calls=[];
  const fakeAuth={languageCode:null};
- const user={getIdToken:async()=> 'test-only'};
+ const user={uid:'test',getIdToken:async()=> 'test-only'};fakeAuth.currentUser=user;
  const result=await build({
   entryPoints:[fileURLToPath(new URL('../src/cloud.js',import.meta.url))],
   bundle:true,write:false,format:'iife',globalName:'cloud',
@@ -17,7 +17,7 @@ test('registration verification and password reset request Arabic without sendin
    b.onLoad({filter:/.*/,namespace:'fake-auth'},args=>({loader:'js',contents:args.path==='firebase/app'
     ?'export const initializeApp=()=>({});'
     :`export const getAuth=()=>fakeAuth;
-      export const onAuthStateChanged=()=>{};
+      export const onIdTokenChanged=()=>{}; export const reload=async()=>{}; export const verifyBeforeUpdateEmail=async()=>{};
       export const createUserWithEmailAndPassword=async()=>({user});
       export const signInWithEmailAndPassword=()=>{};
       export const signOut=()=>{};
@@ -26,7 +26,7 @@ test('registration verification and password reset request Arabic without sendin
       export const sendPasswordResetEmail=async a=>calls.push({type:'reset',language:a.languageCode});` }));
   }}]
  });
- const context=vm.createContext({fakeAuth,user,calls});
+ const context=vm.createContext({fakeAuth,user,calls,window:{dispatchEvent(){}},Event:class{},sessionStorage:{getItem:()=>null,setItem(){}}});
  vm.runInContext(result.outputFiles[0].text,context);
  await context.cloud.register('رفيق القرآن','nobody@example.test','test-only');
  await context.cloud.resetPassword('nobody@example.test');
