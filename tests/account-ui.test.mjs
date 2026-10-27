@@ -9,7 +9,7 @@ import {initialAccount,accountKey,validAvatar} from '../src/account.mjs';
 const q=JSON.parse(fs.readFileSync(new URL('../public/data/quran.json',import.meta.url)));
 const tick=()=>new Promise(r=>setTimeout(r,50));
 const result=await build({entryPoints:[fileURLToPath(new URL('../src/main.jsx',import.meta.url))],bundle:true,write:false,format:'iife',loader:{'.css':'empty'},define:{'import.meta.env':JSON.stringify({BASE_URL:'/'}),'process.env.NODE_ENV':'"production"'},plugins:[{name:'account-adapter',setup(b){b.onResolve({filter:/\/cloud\.js$/},args=>args.importer.includes('node_modules')?undefined:({path:'cloud',namespace:'account-mock'}));b.onLoad({filter:/.*/,namespace:'account-mock'},()=>({loader:'js',contents:`
-export const configured=true;
+export const configured=true;export const offlineDemo=false;
 export const watchAuth=cb=>{window.switchUser=cb;cb(window.testUser);return ()=>{};};
 export const login=async()=>{};export const register=async()=>{};export const resetPassword=async()=>{};
 export const logout=async()=>{window.testUser=null;window.switchUser(null);};

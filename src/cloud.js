@@ -4,6 +4,7 @@ const env=import.meta.env;
 export const configured=!!(env.VITE_FIREBASE_API_KEY&&env.VITE_FIREBASE_AUTH_DOMAIN&&env.VITE_FIREBASE_PROJECT_ID&&env.VITE_FIREBASE_APP_ID);
 export const auth=configured?getAuth(initializeApp({apiKey:env.VITE_FIREBASE_API_KEY,authDomain:env.VITE_FIREBASE_AUTH_DOMAIN,projectId:env.VITE_FIREBASE_PROJECT_ID,appId:env.VITE_FIREBASE_APP_ID})):null;
 if(auth)auth.languageCode='ar';
+export const offlineDemo=!configured&&(env.DEV===true||env.VITE_OFFLINE_DEMO==='true');
 const listeners=new Set();
 let registering=false;
 const snapshot=u=>u?{uid:u.uid,email:u.email,emailVerified:u.emailVerified,displayName:u.displayName}:null;
