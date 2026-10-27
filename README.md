@@ -108,7 +108,7 @@ Vercel Hobby مخصّص للاستخدام الشخصي غير التجاري؛ 
 - `src/GamePlayer.jsx` و`src/questions.mjs`: محركات الألعاب والمحتوى.
 - `src/questions.mjs` و`src/history.mjs`: توليد بنك الأسئلة وحجز الجلسات ومنع التكرار.
 - `src/ContentManager.jsx` و`src/content.mjs`: إدارة الأسئلة والتحقق من بنية البنك.
-- `public/data/editorial-bank.json`: المحتوى التحريري القابل للاستبدال والتحديث.
+- `src/data/editorial-bank.json`: المحتوى التحريري القابل للاستبدال والتحديث.
 - `src/domain.mjs`: حدود الحفظ، سحب الأسئلة، الدرجات، الترتيب وCSV.
 - `src/cloud.js`: Firebase Auth وعميل API.
 - `api/app.js`: خادم الهوية والصلاحيات والمسابقات والمحاولة اليومية.

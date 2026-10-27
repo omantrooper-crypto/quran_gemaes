@@ -66,3 +66,22 @@ test('only verified content editors publish, version conflicts prevent overwrite
  const invalid=structuredClone(bank);invalid.entries[0].ayah=10000;assert.equal((await request('owner',{action:'content.save',bank:invalid,version:1})).status,400);
  documents.delete('content/editorial');delete process.env.CONTENT_EDITOR_UIDS;
 });
+
+test('every protected action rejects unverified accounts and ignores forged role fields',async()=>{
+ const actions=['profile.get','profile.save','ranking','training.start','daily.start','daily.submit','competition.list','competition.get','competition.save','competition.generate','competition.judge','competition.publish','content.get','content.save'];
+ for(const action of actions)assert.equal((await request('unverified',{action,emailVerified:true,admin:true,role:'admin'})).status,403,action);
+ const capabilities=await request('unverified',{action:'capabilities',emailVerified:true,role:'admin'});assert.equal(capabilities.admin,false);assert.equal(capabilities.contentEditor,false);assert.equal(capabilities.emailVerified,false);
+ const save=await request('outsider',{action:'profile.save',alias:'عضو عادي',rankOptIn:false,role:'admin',admin:true,points:100000});assert.equal(save.status,200);assert.equal(documents.get('profiles/outsider').role,undefined);assert.equal(documents.get('profiles/outsider').points,undefined);assert.equal((await request('outsider',{action:'content.get'})).status,403);
+});
+test('profile avatar is validated, stored for its owner and can be removed',async()=>{
+ const avatar='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aZFEAAAAASUVORK5CYII=';
+ assert.equal((await request('outsider',{action:'profile.save',alias:'عضو عادي',avatar})).status,200);assert.equal((await request('outsider',{action:'profile.get'})).avatar,avatar);assert.notEqual((await request('owner',{action:'profile.get'})).avatar,avatar);
+ for(const bad of ['https://example.test/photo.png','data:image/svg+xml;base64,PHN2Zz4=','data:image/png;base64,aGVsbG8='])assert.equal((await request('outsider',{action:'profile.save',alias:'عضو',avatar:bad})).status,400);
+ await request('outsider',{action:'profile.save',alias:'عضو عادي',avatar:''});assert.equal((await request('outsider',{action:'profile.get'})).avatar,'');
+});
+test('server rejects split short surahs and approval without passages',async()=>{
+ const c=newCompetition('مراجعة','2026-10-26','مدرسة',{id:'owner',name:'المنظّم'});c.levels[0]={...c.levels[0],startSurah:112,startAyah:1,endSurah:114,endAyah:6,count:1};c.participants=[{id:uid(),name:'حافظ',levelId:c.levels[0].id,approved:true}];
+ assert.equal((await request('owner',{action:'competition.save',competition:c})).status,400);
+ c.participants[0].passages=[{s:112,from:1,to:2,origin:'manual',reason:'راجع المعلّم النص وسبب البدء والنهاية',sourceUrl:'https://quran.ksu.edu.sa/'}];assert.equal((await request('owner',{action:'competition.save',competition:c})).status,400);
+ c.participants[0].passages=generatePassages(q,c.levels[0]);const saved=await request('owner',{action:'competition.save',competition:c,version:0});assert.equal(saved.status,200);assert.equal(saved.competition.participants[0].reviewedBy,'owner');
+});

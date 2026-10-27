@@ -1,5 +1,5 @@
 import {shuffle,verse,chapter,refLabel,clean} from './domain.mjs';
-import defaultBank from '../public/data/editorial-bank.json' with {type:'json'};
+import defaultBank from './data/editorial-bank.json' with {type:'json'};
 export {defaultBank};
 export const scopes=[['all','القرآن كاملًا'],['amma','جزء عمّ'],['short','قصار السور (١٠٠–١١٤)']];
 const cite=(q,s,a)=>({label:refLabel(q,s,a),url:`https://quranenc.com/ar/browse/arabic_moyassar/${s}#${a}`});
